@@ -31,6 +31,18 @@ O QUE VOCÊ VAI APRENDER (um módulo por item)
      deveriam                         RX, e o que isso significa para viés
   8. IA não é só classificar        → segmentação anatômica de 14 estruturas
 
+CADA MÓDULO TEM UMA PÁGINA DE PREPARAÇÃO ANTES DELE
+---------------------------------------------------
+São oito páginas extras, uma por módulo, que ensinam o vocabulário necessário
+antes de o módulo começar: o que é um pixel, um logito, um rótulo, uma máscara,
+uma variável de confusão. Existem porque esta aula é para estudantes de
+medicina, que não têm por que já saber nada disso — e porque sem elas o aluno
+atravessa a aula decorando números em vez de entendê-los.
+
+Cada preparação traz uma tabela de termos e termina com perguntas de
+autoverificação, com a resposta escondida. Todas funcionam sem radiografia
+nenhuma carregada, para leitura prévia.
+
 --------------------------------------------------------------------------------
   AVISO IMPORTANTE — LEIA ANTES DE USAR
 --------------------------------------------------------------------------------
@@ -66,6 +78,14 @@ Na primeira vez que você abrir cada módulo, o programa baixa os pesos do model
 correspondente (cerca de 30 MB cada). Depois disso fica em cache e abre na hora.
 Só precisa de internet nesse primeiro download.
 
+AUTOR
+-----
+João José Bentivi
+WhatsApp (11) 96994-2000 · josebentivi@gmail.com
+
+Os dados de contato e a apresentação do autor ficam reunidos no BLOCO 1, na
+seção "Autoria e contato" — é lá que se edita, e não no meio da interface.
+
 Biblioteca usada: TorchXRayVision — https://github.com/mlmed/torchxrayvision
 Para citar em trabalhos: Cohen et al., "TorchXRayVision: A library of chest
 X-ray datasets and models", MIDL 2022.
@@ -83,6 +103,7 @@ import math
 import sys
 import tempfile
 import textwrap
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -439,6 +460,44 @@ try:
     PASTA_EXEMPLOS = Path(__file__).resolve().parent / "imagens_exemplo"
 except NameError:  # __file__ não existe em alguns notebooks
     PASTA_EXEMPLOS = Path.cwd() / "imagens_exemplo"
+
+# ------------------------------------------------------------------------------
+# Autoria e contato.
+#
+# Tudo o que aparece na página de abertura está reunido aqui. Se algum dado mudar
+# — telefone, e-mail, nome do arquivo da foto — basta editar nesta seção, sem
+# procurar no meio do código da interface.
+# ------------------------------------------------------------------------------
+AUTOR = "João José Bentivi"
+
+# O número aparece na tela no formato brasileiro, mas o link do WhatsApp exige o
+# formato internacional só com dígitos: 55 (Brasil) + 11 (DDD) + o número.
+AUTOR_WHATSAPP_EXIBICAO = "(11) 96994-2000"
+AUTOR_WHATSAPP_DIGITOS = "5511969942000"
+AUTOR_EMAIL = "josebentivi@gmail.com"
+
+# Mensagem e assunto já preenchidos, para o aluno não travar no "o que escrever".
+_SAUDACAO_WHATSAPP = "Olá! Sou aluno e vi a sua aula de IA em radiologia."
+_ASSUNTO_EMAIL = "Aula de IA em radiologia"
+
+# quote() converte espaços e acentos para o formato que uma URL aceita.
+URL_WHATSAPP = (
+    f"https://wa.me/{AUTOR_WHATSAPP_DIGITOS}"
+    f"?text={urllib.parse.quote(_SAUDACAO_WHATSAPP)}"
+)
+URL_EMAIL = f"mailto:{AUTOR_EMAIL}?subject={urllib.parse.quote(_ASSUNTO_EMAIL)}"
+
+# Apresentação pessoal do autor, exibida na página de abertura.
+#
+# Está vazia de propósito: escreva aqui o seu texto, do jeito que você quiser ser
+# apresentado aos alunos — formação, onde atua, por que montou este material.
+# Aceita markdown (**negrito**, listas, links). Enquanto ficar vazia, a seção
+# simplesmente não aparece na página, sem deixar buraco nenhum.
+AUTOR_BIO = ""
+
+# Se existir um arquivo com este nome na mesma pasta do script, ele é usado como
+# foto na página de abertura. Se não existir, a página se ajusta sozinha.
+ARQUIVO_FOTO_AUTOR = "foto_autor.jpg"
 
 # Aviso que aparece em TODAS as páginas. A repetição é proposital.
 AVISO_EDUCACIONAL = (
@@ -1194,6 +1253,7 @@ AULA = [
     ("8", "Segmentação anatômica"),
 ]
 
+PAGINA_AUTOR = "Sobre o autor"
 PAGINA_INICIO = "Início"
 
 
@@ -1207,8 +1267,9 @@ def rotulo_modulo(numero: str, titulo: str) -> str:
     return f"{numero} · {titulo}"
 
 
-# A lista que a barra lateral mostra: preparação e módulo, alternando.
-MODULOS = [PAGINA_INICIO]
+# A lista que a barra lateral mostra. A apresentação do autor vem primeiro, e por
+# isso é ela que o aluno encontra ao abrir o aplicativo.
+MODULOS = [PAGINA_AUTOR, PAGINA_INICIO]
 for _numero, _titulo in AULA:
     MODULOS.append(rotulo_preparacao(_numero))
     MODULOS.append(rotulo_modulo(_numero, _titulo))
@@ -1258,7 +1319,10 @@ def cabecalho(titulo: str, subtitulo: str = ""):
 def barra_lateral():
     """Desenha a barra lateral e devolve (módulo escolhido, caminho da imagem)."""
     st.sidebar.title("Aula: IA em Radiologia")
-    st.sidebar.caption("Siga os módulos em ordem na primeira vez.")
+    st.sidebar.caption(
+        "Cada módulo tem uma **Preparação** antes dele, com o vocabulário "
+        "necessário. Na primeira vez, siga na ordem."
+    )
 
     modulo = st.sidebar.radio("Módulo", MODULOS, label_visibility="collapsed")
 
@@ -1297,11 +1361,122 @@ def barra_lateral():
 
     st.sidebar.divider()
     st.sidebar.caption(
+        f"Material de **{AUTOR}**\n\n"
         "TorchXRayVision · DenseNet-121\n\n"
         "Material didático. Sem valor diagnóstico."
     )
     return modulo, caminho
 
+
+
+# ------------------------------------------------------------------------------
+# PÁGINA DE ABERTURA — quem fez este material
+# ------------------------------------------------------------------------------
+# É a primeira página da barra lateral e, portanto, a que o aluno vê ao abrir o
+# aplicativo.
+#
+# Sobre os botões de contato: st.link_button gera um link de verdade, que o
+# navegador abre numa aba nova. Os dois endereços são montados no BLOCO 1.
+#   - WhatsApp → wa.me, que funciona tanto no aplicativo do celular quanto no
+#     WhatsApp Web, já com uma mensagem de saudação preenchida.
+#   - E-mail → mailto:, que abre o programa de e-mail configurado no computador
+#     do aluno. Como nem todo mundo tem um configurado, o endereço também
+#     aparece escrito logo abaixo, para poder ser copiado.
+# ------------------------------------------------------------------------------
+def pagina_autor():
+    cabecalho(
+        AUTOR,
+        "Autor e responsável por este material didático.",
+    )
+
+    # A foto só entra se o arquivo existir ao lado do script. Sem ele, o texto
+    # ocupa a largura toda e a página continua bem resolvida.
+    try:
+        caminho_foto = Path(__file__).resolve().parent / ARQUIVO_FOTO_AUTOR
+    except NameError:
+        caminho_foto = Path.cwd() / ARQUIVO_FOTO_AUTOR
+
+    if caminho_foto.exists():
+        coluna_foto, coluna_texto = st.columns([1, 2.6])
+        with coluna_foto:
+            st.image(str(caminho_foto), use_container_width=True)
+        destino = coluna_texto
+    else:
+        destino = st.container()
+
+    with destino:
+        st.markdown(
+            f"""
+Este material foi criado por **{AUTOR}** para ensinar estudantes de medicina a
+**usar, ler e questionar** sistemas de inteligência artificial aplicados à
+radiografia de tórax.
+
+A proposta não é formar programadores. É que você saia daqui capaz de operar um
+modelo de verdade, entender o que o número na tela significa, e fazer as
+perguntas certas quando um sistema desses for apresentado ao seu serviço.
+"""
+        )
+
+        if AUTOR_BIO.strip():
+            st.markdown(AUTOR_BIO)
+
+    st.divider()
+
+    st.subheader("Fale comigo")
+    st.markdown(
+        "Dúvidas sobre o conteúdo, sugestões, correções ou interesse em usar este "
+        "material em aula — é só chamar. Os dois botões abrem em uma aba nova."
+    )
+
+    coluna_whatsapp, coluna_email = st.columns(2)
+
+    with coluna_whatsapp:
+        st.link_button(
+            "Falar no WhatsApp",
+            URL_WHATSAPP,
+            icon="💬",
+            type="primary",
+            use_container_width=True,
+        )
+        st.caption(AUTOR_WHATSAPP_EXIBICAO)
+
+    with coluna_email:
+        st.link_button(
+            "Enviar um e-mail",
+            URL_EMAIL,
+            icon="✉️",
+            use_container_width=True,
+        )
+        st.caption(AUTOR_EMAIL)
+
+    st.caption(
+        "O botão de e-mail abre o programa de e-mail configurado no seu "
+        "computador. Se não acontecer nada ao clicar, é porque não há nenhum "
+        "configurado — nesse caso copie o endereço acima e escreva pelo site do "
+        "seu e-mail."
+    )
+
+    st.divider()
+
+    st.markdown(
+        """
+### Por onde começar
+
+Abra **Início** na barra lateral: lá está o roteiro completo dos oito módulos e
+como percorrê-los.
+
+Se for a sua primeira vez, siga na ordem. Cada módulo tem uma página de
+**Preparação** antes dele, com o vocabulário necessário — elas existem
+justamente para que você não precise saber nada de computação para acompanhar.
+"""
+    )
+
+    st.caption(
+        "Este material usa a biblioteca aberta TorchXRayVision (Cohen et al., "
+        "MIDL 2022) e modelos publicados por grupos de pesquisa do NIH, de "
+        "Stanford, do MIT, do Hospital San Juan e da RSNA. Os créditos de cada "
+        "modelo estão no módulo 5."
+    )
 
 # ------------------------------------------------------------------------------
 # MÓDULO: Início
@@ -1336,10 +1511,25 @@ dentro de um sistema de IA, e cada etapa esconde um modo de falhar:
 
 ### Como usar
 
+Cada módulo é precedido por uma página de **Preparação**, que ensina o
+vocabulário necessário para acompanhá-lo. Elas existem porque esta aula é para
+estudantes de medicina, e não há razão nenhuma para você já saber o que é um
+logito ou um rótulo — assim como não há razão para um engenheiro saber o que é
+um seio costofrênico.
+
 1. Escolha uma radiografia na barra lateral (as de exemplo baixam sozinhas).
-2. Percorra os módulos em ordem.
-3. Em cada módulo, leia o texto **antes** de olhar o resultado. O texto explica
+2. Percorra na ordem: **Preparação 1 → Módulo 1 → Preparação 2 → Módulo 2 →** e
+   assim por diante.
+3. Cada preparação termina com perguntas de autoverificação. Responda antes de
+   abrir a resposta — se errar, volte e releia; se acertar tudo, siga em frente.
+4. Em cada módulo, leia o texto **antes** de olhar o resultado. O texto explica
    o que você deveria esperar; a graça está em comparar com o que aconteceu.
+
+As páginas de preparação funcionam **sem nenhuma radiografia carregada**, então
+dá para ler toda a parte conceitual antes da aula.
+
+Se você já é da área de computação, pule as preparações 1, 2 e 4. Se você já
+domina epidemiologia clínica, pule a 3.
 
 ### Três perguntas para levar ao final da aula
 
@@ -1362,6 +1552,1463 @@ importam:
             )
             st.markdown("")
 
+
+
+# ==============================================================================
+# BLOCO 8B — PÁGINAS DE PREPARAÇÃO
+# ==============================================================================
+# Antes de cada módulo existe uma página que ensina o vocabulário necessário
+# para acompanhá-lo. O motivo é simples: esta aula é para estudantes de medicina,
+# e não há razão nenhuma para eles já saberem o que é um logito, um rótulo ou uma
+# arquitetura. Sem estas páginas, o aluno atravessa a aula decorando números.
+#
+# A ênfase é no vocabulário de computação e de inteligência artificial, que é o
+# que falta. Os termos radiológicos entram só quando têm um papel técnico —
+# "PA" e "AP" importam porque a incidência muda a silhueta cardíaca e, com ela,
+# a saída de cardiomegalia; "achado" importa porque o sentido que o modelo dá à
+# palavra não é o sentido clínico.
+#
+# Todas as oito páginas têm a mesma estrutura, montada pelas funções logo abaixo:
+#   1. Você vai precisar disto       — o que o módulo seguinte vai exigir
+#   2. Pule se você já sabe          — para quem já domina não perder tempo
+#   3. A explicação                  — linguagem simples, sem notação matemática
+#   4. Termos que vão aparecer       — o glossário, distribuído por módulo
+#   5. Cheque se entendeu            — perguntas com a resposta escondida
+#
+# Nenhuma delas depende de radiografia carregada: abrem sempre, inclusive antes
+# da aula, para leitura prévia.
+# ==============================================================================
+
+
+def abrir_preparacao(numero: str, resumo: str, ja_sabe: str):
+    """Cabeçalho padrão das páginas de preparação."""
+    titulo_modulo = TITULO_DO_MODULO[numero]
+    cabecalho(
+        f"Preparação para o módulo {numero}",
+        f"O básico para acompanhar “{titulo_modulo}”.",
+    )
+    st.markdown(f"**Você vai precisar disto.** {resumo}")
+    st.caption(f"Pule esta página se você já sabe: {ja_sabe}.")
+    st.divider()
+
+
+def tabela_termos(termos: dict):
+    """
+    Desenha a tabela termo → definição.
+
+    Usamos tabela de markdown, e não st.dataframe, porque o markdown quebra a
+    linha das definições longas. Numa tabela de dados o texto seria cortado.
+    """
+    st.subheader("Termos que vão aparecer")
+    linhas = ["| Termo | O que quer dizer |", "|---|---|"]
+    linhas += [f"| **{termo}** | {definicao} |" for termo, definicao in termos.items()]
+    st.markdown("\n".join(linhas))
+
+
+def checagem(perguntas):
+    """
+    Perguntas de autoverificação, com a resposta escondida num expansor.
+
+    Esconder a resposta não é enfeite: se ela estiver visível, o aluno lê e acha
+    que sabia. Tentar responder antes de abrir é o que faz a checagem funcionar.
+    """
+    st.subheader("Cheque se entendeu")
+    st.caption("Responda mentalmente antes de abrir. Se errar, volte às seções acima.")
+    for posicao, (pergunta, resposta) in enumerate(perguntas, start=1):
+        with st.expander(f"{posicao}. {pergunta}"):
+            st.markdown(resposta)
+
+
+def fim_preparacao(numero: str):
+    """Encerramento padrão, apontando para o módulo correspondente."""
+    st.success(
+        f"Pronto. Agora abra **{rotulo_modulo(numero, TITULO_DO_MODULO[numero])}** "
+        "na barra lateral.",
+        icon="➡️",
+    )
+
+
+# ------------------------------------------------------------------------------
+# Figuras das páginas de preparação.
+#
+# Nenhuma delas usa a radiografia escolhida: são todas sintéticas ou
+# esquemáticas, para que a preparação funcione mesmo sem imagem nenhuma aberta.
+# ------------------------------------------------------------------------------
+def figura_grade_de_pixels():
+    """
+    Mostra a mesma matriz 8×8 de dois jeitos: como imagem e como números.
+
+    É a forma mais direta de fazer a ficha cair sobre o que é uma imagem digital.
+    """
+    linha, coluna = np.mgrid[0:8, 0:8]
+    # Uma manchinha clara sobre fundo escuro, só para parecer uma estrutura.
+    valores = (28 + 205 * np.exp(-(((coluna - 2.4) ** 2 + (linha - 4.0) ** 2) / 5.5))).astype(int)
+
+    figura, eixos = plt.subplots(1, 2, figsize=(8.4, 4.4))
+
+    eixos[0].imshow(valores, cmap="gray", vmin=0, vmax=255, interpolation="nearest")
+    eixos[0].set_title("O que aparece na tela", fontsize=10)
+
+    eixos[1].imshow(np.full_like(valores, 255), cmap="gray", vmin=0, vmax=255)
+    for indice_linha in range(8):
+        for indice_coluna in range(8):
+            eixos[1].text(
+                indice_coluna,
+                indice_linha,
+                str(valores[indice_linha, indice_coluna]),
+                ha="center",
+                va="center",
+                fontsize=7.5,
+                color="#1f1f1f",
+            )
+    eixos[1].set_title("O que o computador guarda", fontsize=10)
+
+    for eixo in eixos:
+        eixo.set_xticks(np.arange(-0.5, 8, 1), minor=True)
+        eixo.set_yticks(np.arange(-0.5, 8, 1), minor=True)
+        eixo.grid(which="minor", color="#b0b0b0", linewidth=0.6)
+        eixo.set_xticks([])
+        eixo.set_yticks([])
+
+    figura.tight_layout()
+    return figura
+
+
+def figura_caminho_do_numero():
+    """Esquema do percurso que o número faz da imagem até a tela."""
+    etapas = [
+        ("Radiografia\n224 × 224", "", COR_ABAIXO),
+        ("Rede\nDenseNet-121", "", COR_ABAIXO),
+        ("Logito\nsem limite", "-0,94", COR_DESTAQUE),
+        ("Sigmoide\nespreme em 0 a 1", "0,281", COR_DESTAQUE),
+        ("Reescala pelo\nponto de corte", "0,622", COR_ACIMA),
+    ]
+
+    figura, eixo = plt.subplots(figsize=(9.8, 3.0))
+    eixo.set_xlim(-0.62, len(etapas) - 0.38)
+    eixo.set_ylim(0, 1)
+    eixo.axis("off")
+
+    for posicao, (rotulo, valor, cor) in enumerate(etapas):
+        eixo.text(
+            posicao,
+            0.62,
+            rotulo,
+            ha="center",
+            va="center",
+            fontsize=8.6,
+            bbox=dict(boxstyle="round,pad=0.45", facecolor="white", edgecolor=cor, linewidth=1.6),
+        )
+        if valor:
+            eixo.text(
+                posicao, 0.21, valor, ha="center", va="center",
+                fontsize=12, fontweight="bold", color=cor,
+            )
+        if posicao < len(etapas) - 1:
+            eixo.annotate(
+                "",
+                xy=(posicao + 0.63, 0.62),
+                xytext=(posicao + 0.37, 0.62),
+                arrowprops=dict(arrowstyle="-|>", color="#8a8a8a", linewidth=1.5),
+            )
+
+    eixo.text(
+        len(etapas) - 1, 0.03, "é este que aparece na tela",
+        ha="center", fontsize=7.8, color=COR_ACIMA,
+    )
+    figura.tight_layout()
+    return figura
+
+
+def figura_cem_pessoas(prevalencia=0.10, sensibilidade=0.90, especificidade=0.90):
+    """
+    Arranjo de 100 bonecos — a ferramenta padrão de comunicação de risco.
+
+    Cada círculo é uma pessoa. Ver o bloco azul dos falsos positivos do lado do
+    bloco vermelho dos verdadeiros positivos convence mais do que qualquer
+    fórmula, e é por isso que esta figura vem ANTES do módulo 3, e não depois.
+    """
+    doentes = int(round(100 * prevalencia))
+    verdadeiros_positivos = int(round(doentes * sensibilidade))
+    falsos_negativos = doentes - verdadeiros_positivos
+    falsos_positivos = int(round((100 - doentes) * (1 - especificidade)))
+    # O resto, para garantir que a soma seja exatamente 100 pessoas.
+    verdadeiros_negativos = 100 - verdadeiros_positivos - falsos_negativos - falsos_positivos
+
+    grupos = [
+        ("#8e1b13", verdadeiros_positivos, "têm a doença e o modelo apontou"),
+        ("#e08a2e", falsos_negativos, "têm a doença e o modelo deixou passar"),
+        (COR_DESTAQUE, falsos_positivos, "não têm, mas o modelo apontou"),
+        ("#d6d9db", verdadeiros_negativos, "não têm e o modelo não apontou"),
+    ]
+
+    cores = []
+    for cor, quantidade, _ in grupos:
+        cores.extend([cor] * quantidade)
+
+    figura, eixo = plt.subplots(figsize=(6.2, 6.2))
+    for indice, cor in enumerate(cores):
+        eixo.scatter(
+            indice % 10, -(indice // 10),
+            s=235, color=cor, marker="o", edgecolors="white", linewidths=1.3,
+        )
+
+    for cor, quantidade, texto in grupos:
+        eixo.plot([], [], "o", color=cor, markersize=8, label=f"{quantidade} — {texto}")
+
+    eixo.set_xlim(-0.8, 9.8)
+    eixo.set_ylim(-9.8, 0.8)
+    eixo.set_aspect("equal")
+    eixo.axis("off")
+    eixo.set_title(
+        f"100 pessoas, prevalência de {num(prevalencia * 100, 0)}%,\n"
+        f"modelo com {num(sensibilidade * 100, 0)}% de sensibilidade e "
+        f"{num(especificidade * 100, 0)}% de especificidade",
+        fontsize=10,
+    )
+    eixo.legend(
+        loc="upper center", bbox_to_anchor=(0.5, -0.01),
+        fontsize=8.6, frameon=False, ncol=1,
+    )
+    figura.tight_layout()
+    return figura
+
+
+# ------------------------------------------------------------------------------
+# PREPARAÇÃO 1 — para "O que o modelo realmente vê"
+# ------------------------------------------------------------------------------
+def preparacao_1():
+    abrir_preparacao(
+        "1",
+        "O módulo 1 mostra a radiografia sendo desmontada antes de a rede olhar "
+        "para ela. Para acompanhar, você precisa saber o que é uma imagem digital "
+        "do ponto de vista do computador — porque ela não é uma fotografia, é uma "
+        "tabela de números.",
+        "pixel, profundidade de bits, DICOM, janelamento e a diferença entre PA e AP",
+    )
+
+    st.subheader("Uma imagem é uma tabela de números")
+    st.markdown(
+        """
+Pare de pensar na radiografia como uma figura. Para o computador ela é uma
+**matriz**: uma tabela com uma linha para cada fileira de pontos da imagem e uma
+coluna para cada ponto dessa fileira.
+
+Cada casa dessa tabela é um **pixel**, e guarda um número só. Esse número
+representa quanta radiação chegou ao detector naquele ponto. Onde passou muito
+raio X (ar, pulmão), o valor é baixo e a região sai escura; onde passou pouco
+(osso, metal, contraste), o valor é alto e a região sai clara.
+
+Olhe a mesma matriz de 8 × 8 dos dois jeitos:
+"""
+    )
+    figura = figura_grade_de_pixels()
+    st.pyplot(figura)
+    plt.close(figura)
+    st.caption(
+        "À esquerda, o que você enxergaria. À direita, o conteúdo real do arquivo. "
+        "A rede neural trabalha exclusivamente com a tabela da direita."
+    )
+
+    st.subheader("Quantos tons a imagem tem: profundidade de bits")
+    st.markdown(
+        """
+O número de cada pixel não pode ser qualquer coisa: ele cabe numa quantidade
+fixa de **bits**, e isso limita quantos tons de cinza existem.
+
+- **8 bits** → 256 tons possíveis (0 a 255). É o que um PNG ou JPG comum guarda.
+- **12 a 16 bits** → de 4.096 a 65.536 tons. É o que um DICOM de radiografia guarda.
+
+O seu monitor mostra cerca de 256 tons, e o olho humano distingue menos que isso
+de uma vez. Então para que servem 65.536? Servem para o radiologista poder
+**escolher que faixa olhar** — e é isso que o janelamento faz.
+
+Quando alguém exporta um DICOM para PNG ou JPG, essa escolha já foi feita e
+congelada: os tons que ficaram de fora **foram jogados fora para sempre**. É uma
+das razões pelas quais um modelo pode ir bem no laboratório, onde recebeu DICOM,
+e pior no serviço, onde recebe JPG exportado.
+"""
+    )
+
+    st.subheader("Janelamento: decidir que faixa vira cinza")
+    st.markdown(
+        """
+**Janela** (em inglês *window/level*, e no cabeçalho do arquivo *VOI LUT*) é a
+faixa de valores que será espalhada entre o preto e o branco. Tudo abaixo da
+faixa vira preto uniforme; tudo acima vira branco uniforme.
+
+É por isso que o mesmo exame parece ser dois exames diferentes na janela de
+pulmão e na de mediastino. Nada mudou no arquivo — mudou só qual pedaço da
+régua está sendo mostrado.
+
+Este aplicativo aplica automaticamente a janela gravada no próprio DICOM, que é
+a mesma que o radiologista veria ao abrir o exame no sistema do hospital.
+"""
+    )
+
+    st.subheader("Como o exame foi feito muda o que aparece")
+    st.markdown(
+        """
+Duas siglas aparecem o tempo todo nesta aula, e elas têm consequência direta no
+que o modelo responde:
+
+**PA — póstero-anterior.** O paciente fica de pé, de frente para o aparelho, com
+o peito encostado no detector. O raio entra pelas costas e sai pelo peito. Como
+o coração fica quase colado no detector, ele aparece **no tamanho real**. É a
+incidência padrão.
+
+**AP — ântero-posterior.** O raio entra pela frente. É o que se faz com o
+paciente acamado, na UTI ou no pronto-socorro, com o detector atrás das costas.
+Agora o coração está **longe** do detector, e tudo que está longe do detector
+aparece **aumentado** — é o mesmo efeito da sombra da sua mão numa parede,
+que cresce conforme você afasta a mão.
+
+Guarde esta consequência, porque ela vai voltar: **um exame AP infla a silhueta
+cardíaca e, com ela, a saída de cardiomegalia do modelo — sem que exista
+cardiomegalia nenhuma.** Se a base de treino tinha muitos exames de UTI, o
+modelo herdou esse viés de medida.
+
+Some a isso a inspiração: um exame feito em expiração comprime o tórax e também
+alarga a silhueta cardíaca.
+"""
+    )
+
+    st.subheader("O que o pré-processamento vai fazer")
+    st.markdown(
+        """
+No módulo 1 você vai ver três transformações, nesta ordem:
+
+1. **Recorte central** — a rede só aceita imagem quadrada, então faixas de cima
+   e de baixo são descartadas. São justamente as bordas, onde ficam ápices e
+   seios costofrênicos.
+2. **Redimensionamento** para 224 × 224 — a imagem encolhe brutalmente.
+3. **Normalização** — os valores são reescalados para a faixa que estes modelos
+   esperam, de -1024 a +1024. É só uma mudança de régua, não muda o conteúdo.
+"""
+    )
+
+    tabela_termos(
+        {
+            "Pixel": "Cada ponto da imagem. Guarda um número, que é a intensidade naquele ponto.",
+            "Matriz": "A tabela de números que forma a imagem. Uma radiografia comum é uma matriz de cerca de 2.000 × 2.500.",
+            "Bit": "A menor unidade de informação do computador. Quantos bits um pixel tem determina quantos tons ele pode assumir.",
+            "Profundidade de bits": "Quantos tons de cinza existem. 8 bits = 256 tons; 16 bits = 65.536 tons.",
+            "Escala de cinza": "Imagem com um valor por pixel, em vez de três. Radiografia é monocromática por natureza.",
+            "Canal de cor": "Cada uma das camadas de uma imagem colorida (vermelho, verde, azul). Uma radiografia exportada em PNG costuma vir com os três canais iguais.",
+            "Resolução": "Quantos pixels a imagem tem. Mais pixels, mais detalhe fino visível.",
+            "DICOM": "O formato padrão de imagem médica. Guarda os valores originais em alta profundidade de bits e mais os dados do exame e do equipamento.",
+            "PACS": "O sistema onde o hospital guarda e distribui as imagens. É de lá que sai o DICOM.",
+            "Janela (window/level, VOI LUT)": "A faixa de valores que será espalhada entre preto e branco na exibição. Escolher a janela é escolher o que fica visível.",
+            "Incidência": "Como o exame foi posicionado. Define por onde o raio entra e sai.",
+            "PA": "Póstero-anterior. Paciente de pé, raio entra pelas costas. Coração em tamanho fiel. É o padrão.",
+            "AP": "Ântero-posterior. Raio entra pela frente, feito no leito. Coração magnificado, silhueta alargada.",
+            "Decúbito": "Exame feito com o paciente deitado. Muda a distribuição de líquidos e a silhueta cardíaca.",
+            "Recorte (crop)": "Cortar uma parte da imagem. Aqui, transformar o retângulo num quadrado descartando as bordas.",
+            "Redimensionar": "Mudar o tamanho da imagem em pixels. Reduzir descarta detalhe de forma irreversível.",
+            "Normalizar": "Reescalar os valores para uma faixa combinada. Não muda o conteúdo, muda a régua.",
+        }
+    )
+
+    checagem(
+        [
+            (
+                "Por que exportar um DICOM para JPG antes de mandar para o modelo pode atrapalhar?",
+                "Por dois motivos somados. Primeiro, o JPG guarda 8 bits por pixel: dos milhares de "
+                "tons do DICOM sobram 256, e o resto foi descartado de forma irreversível. Segundo, a "
+                "exportação já aplicou uma janela — alguém, ou algum programa, escolheu que faixa "
+                "ficaria visível, e o que caiu fora dela virou preto ou branco uniforme.",
+            ),
+            (
+                "Um exame feito no leito, em AP, tende a aumentar ou diminuir a saída de cardiomegalia? Por quê?",
+                "Aumentar. Em AP o coração fica longe do detector, e tudo que está longe do detector "
+                "projeta uma sombra maior — como a sombra da mão na parede, que cresce quando você "
+                "afasta a mão. A silhueta cardíaca aparece alargada mesmo num coração normal, e o "
+                "modelo responde a essa aparência.",
+            ),
+            (
+                "A rede recebe 224 × 224. Numa radiografia de 2.000 × 2.500, que fração dos pixels sobra?",
+                "Cerca de **1%**. São 5 milhões de pixels virando 50 mil. Guarde isso para quando "
+                "alguém prometer que o modelo detecta nódulos pequenos: um nódulo de 4 mm não chega "
+                "a ocupar um pixel na imagem reduzida.",
+            ),
+        ]
+    )
+    fim_preparacao("1")
+
+
+# ------------------------------------------------------------------------------
+# PREPARAÇÃO 2 — para "Lendo a saída do modelo"
+# ------------------------------------------------------------------------------
+def preparacao_2():
+    abrir_preparacao(
+        "2",
+        "O módulo 2 põe números na tela. Sem saber de onde eles vêm, o número "
+        "vira superstição: ou você acredita demais, ou desconfia pelo motivo "
+        "errado. Esta página explica o caminho que o número percorre.",
+        "rede neural, pesos, treino, logito, sigmoide, calibração e ponto de corte",
+    )
+
+    st.subheader("O que é uma rede neural, sem matemática")
+    st.markdown(
+        """
+Esqueça neurônios e cérebro — a analogia é ruim e atrapalha mais do que ajuda.
+
+Pense assim: a rede é um **residente que viu 100 mil radiografias com o laudo ao
+lado**. Ninguém lhe deu aula de anatomia, ninguém explicou o que é um derrame.
+Ele só foi vendo imagem e laudo, imagem e laudo, ajustando o próprio critério
+toda vez que errava, até acertar a maioria.
+
+Esse "critério ajustado" é, literalmente, um monte de números guardados: são os
+**pesos** do modelo. Treinar é o processo de ajustar esses números. Os arquivos
+de 30 MB que este aplicativo baixa são exatamente isso — só os pesos, nada mais.
+
+A **arquitetura** é o desenho do circuito por onde a imagem passa: quantas etapas
+existem e como elas se conectam. Todos os modelos desta aula usam a mesma
+arquitetura, chamada **DenseNet-121**, com 121 camadas. Arquitetura igual, pesos
+diferentes, porque foram treinados em hospitais diferentes.
+"""
+    )
+
+    st.subheader("Treinar, validar, usar")
+    st.markdown(
+        """
+Três momentos que costumam ser confundidos:
+
+- **Treino** — mostrar exemplos e ajustar os pesos. Acontece uma vez, no
+  laboratório de quem publicou o modelo. Custa dias de computador.
+- **Validação** — usar exames que a rede nunca viu para medir como ela se sai e,
+  principalmente, **escolher o ponto de corte**. É aqui que nasce aquele 0,50.
+- **Inferência** — usar o modelo já pronto numa imagem nova. É só isso que
+  acontece quando você clica nesta aula. Leva um segundo e não muda nada na rede.
+"""
+    )
+
+    st.subheader("Achado não é diagnóstico")
+    st.markdown(
+        """
+A palavra **achado** vai aparecer o tempo todo, e ela tem aqui um sentido mais
+estreito que o clínico.
+
+Os 18 achados são os **rótulos** com que a rede foi treinada. E esses rótulos,
+na maioria das bases, não foram escritos por um radiologista olhando a imagem:
+foram extraídos automaticamente do **texto do laudo** por um programa de leitura
+de linguagem.
+
+Ou seja, quando o modelo devolve um valor alto para "Pneumonia", a tradução
+honesta não é *"este paciente tem pneumonia"*. É *"esta imagem se parece com as
+imagens cujo laudo continha a palavra pneumonia"*. A distância entre essas duas
+frases explica boa parte dos erros que você vai ver no resto da aula.
+"""
+    )
+
+    st.subheader("O caminho do número")
+    st.markdown(
+        """
+Agora o pulo do gato. O número que aparece na tela passou por três etapas depois
+de sair da rede, e cada uma mudou o seu significado:
+"""
+    )
+    figura = figura_caminho_do_numero()
+    st.pyplot(figura)
+    plt.close(figura)
+
+    st.markdown(
+        """
+**Logito** é o número cru que sai da última camada. Não tem limite para cima nem
+para baixo, pode ser -0,94 ou 7,3, e sozinho não quer dizer nada.
+
+**Sigmoide** é a função que espreme qualquer número nesse intervalo de 0 a 1.
+Depois dela o valor já *parece* uma probabilidade. Mas repare no exemplo acima:
+a sigmoide deu **0,281**. Esse número é pequeno porque as doenças são raras nas
+bases de treino — a rede aprendeu que quase tudo é negativo e puxa todas as
+saídas para baixo. Se você lesse a sigmoide como probabilidade, concluiria que
+quase nenhum exame tem nada.
+
+**Reescala pelo ponto de corte** é o último passo. Os autores mediram, na
+validação, qual valor separa melhor positivos de negativos — neste exemplo,
+0,050. Aí a saída é esticada para que esse corte caia exatamente em 0,50.
+
+Resultado: o **0,622** que aparece na tela quer dizer *"acima do ponto de corte"*,
+e **não** *"62% de chance de ter a doença"*.
+"""
+    )
+
+    st.subheader("Calibração: por que isso não é probabilidade")
+    st.markdown(
+        """
+Uma probabilidade é **calibrada** quando ela se confirma na prática: se você
+juntar todos os exames que receberam 0,30 e 30% deles realmente tiverem a
+doença, o modelo está calibrado.
+
+As saídas desta aula **não são calibradas**. Elas foram esticadas para facilitar
+a leitura do corte, o que é uma escolha razoável — mas cria a armadilha de
+parecerem porcentagens. Transformar isso numa probabilidade de doença de verdade
+exige duas informações que o modelo não tem: o desempenho dele (sensibilidade e
+especificidade) e a prevalência na sua população. É o módulo 3.
+"""
+    )
+
+    tabela_termos(
+        {
+            "Rede neural": "Uma sequência de transformações numéricas ajustáveis, treinada por exemplos em vez de por regras escritas à mão.",
+            "Camada": "Cada etapa dessa sequência. A DenseNet-121 tem 121 delas.",
+            "Peso": "Cada número ajustável guardado dentro da rede. Treinar é ajustar os pesos; o arquivo de 30 MB é a lista deles.",
+            "Arquitetura": "O desenho do circuito: quantas camadas, de que tipo e como conectadas. Não inclui os pesos.",
+            "DenseNet-121": "A arquitetura usada por todos os modelos de classificação desta aula.",
+            "Treino": "Ajustar os pesos mostrando exemplos rotulados. Acontece uma vez, antes de o modelo ser publicado.",
+            "Validação": "Medir o desempenho em exames nunca vistos e escolher o ponto de corte.",
+            "Inferência": "Usar o modelo já treinado numa imagem nova. É o que acontece quando você clica nesta aula.",
+            "Achado": "Cada um dos 18 rótulos que o modelo tenta prever. Não é um diagnóstico: é a palavra que aparecia no laudo.",
+            "Rótulo (label)": "A resposta certa usada no treino. Aqui, quase sempre extraída automaticamente do texto do laudo.",
+            "Logito": "O número cru que sai da última camada, sem limite para cima ou para baixo.",
+            "Sigmoide": "A função que espreme qualquer número no intervalo de 0 a 1.",
+            "Calibração": "Uma saída é calibrada se o valor se confirma na prática. As desta aula não são.",
+            "Ponto de operação": "O valor de corte escolhido na validação para separar positivo de negativo.",
+            "Limiar (ponto de corte)": "O mesmo que ponto de operação. Mover o limiar troca sensibilidade por especificidade.",
+        }
+    )
+
+    checagem(
+        [
+            (
+                "O modelo devolveu 0,62 para derrame pleural. Qual é a leitura correta?",
+                "“Acima do ponto de corte que os autores escolheram para derrame.” E só. **Não** é "
+                "62% de chance de haver derrame. Para chegar a uma probabilidade de verdade você "
+                "precisaria da sensibilidade, da especificidade e da prevalência — que é exatamente "
+                "o que o módulo 3 faz.",
+            ),
+            (
+                "Por que a sigmoide crua costuma sair tão pequena, tipo 0,03 ou 0,08?",
+                "Porque as doenças são raras nas bases de treino. A rede aprendeu que a resposta "
+                "quase sempre é “não tem”, e isso puxa todas as saídas para baixo. Não quer dizer "
+                "que ela ache improvável: quer dizer que a régua dela está deslocada. Por isso a "
+                "reescala pelo ponto de corte existe.",
+            ),
+            (
+                "O que muda se você arrastar o limiar de 0,50 para 0,30 no módulo 2?",
+                "Mais achados passam a contar como positivos. O modelo fica **mais sensível** "
+                "(perde menos doentes) e **menos específico** (dá mais alarme falso). É a troca "
+                "clássica de qualquer teste diagnóstico — e repare que quem arrasta o controle é "
+                "você, não o modelo. Escolher o corte é uma decisão clínica, não técnica.",
+            ),
+        ]
+    )
+    fim_preparacao("2")
+
+
+# ------------------------------------------------------------------------------
+# PREPARAÇÃO 3 — para "Limiar, Bayes e valor preditivo"
+# ------------------------------------------------------------------------------
+def preparacao_3():
+    abrir_preparacao(
+        "3",
+        "Esta é a única preparação que o estudante de medicina provavelmente pode "
+        "pular — o conteúdo é o de epidemiologia clínica que você já viu. O que "
+        "muda aqui é o alvo: em vez de um exame de sangue, o teste diagnóstico é "
+        "um modelo de inteligência artificial. Nada mais muda, e esse é o ponto.",
+        "sensibilidade, especificidade, VPP, VPN e razão de verossimilhança",
+    )
+
+    st.subheader("Um modelo é um teste diagnóstico")
+    st.markdown(
+        """
+Não existe categoria nova. Um modelo de IA entra com um exame e sai com
+positivo ou negativo, igual a um D-dímero, a um teste rápido ou a um escore
+clínico. Portanto vale para ele **exatamente** a mesma estrutura de raciocínio.
+
+Isso é libertador: você não precisa entender redes neurais para avaliar um
+produto de IA. Precisa saber perguntar sensibilidade, especificidade e em que
+população foram medidas — que é o que você já faria com qualquer outro teste.
+"""
+    )
+
+    st.subheader("As quatro caixas")
+    st.markdown(
+        """
+Todo teste, aplicado a uma população, distribui as pessoas em quatro grupos:
+
+|  | **Tem a doença** | **Não tem a doença** |
+|---|---|---|
+| **Teste positivo** | verdadeiro positivo (VP) | falso positivo (FP) |
+| **Teste negativo** | falso negativo (FN) | verdadeiro negativo (VN) |
+
+De onde saem as quatro medidas que interessam:
+
+- **Sensibilidade** = VP ÷ (VP + FN) — dos que **têm** a doença, quantos o teste pega.
+- **Especificidade** = VN ÷ (VN + FP) — dos que **não têm**, quantos o teste libera.
+- **VPP** = VP ÷ (VP + FP) — dos que **deram positivo**, quantos realmente têm.
+- **VPN** = VN ÷ (VN + FN) — dos que **deram negativo**, quantos realmente não têm.
+
+Repare na diferença de direção. Sensibilidade e especificidade olham da doença
+para o teste; VPP e VPN olham do teste para a doença. Você, atendendo, está
+sempre na segunda direção: tem um resultado na mão e quer saber o que fazer
+com o paciente.
+"""
+    )
+
+    st.subheader("O que não muda e o que muda com a população")
+    st.markdown(
+        """
+Esta é a frase que faz toda a diferença ao avaliar IA médica:
+
+> Sensibilidade e especificidade são propriedades **do teste** e não mudam com a
+> população. VPP e VPN mudam, e muito, com a **prevalência**.
+
+Um modelo publicado com desempenho excelente num hospital terciário, onde 20%
+dos exames têm o achado, pode virar uma máquina de alarme falso numa unidade
+básica onde a prevalência é 1%. O modelo não piorou. Trocou quem entra na fila.
+"""
+    )
+
+    st.subheader("A mesma coisa, em pessoas")
+    st.markdown(
+        """
+Números em porcentagem enganam a intuição. Olhe em pessoas — 100 delas, num
+cenário nada extremo: prevalência de 10%, e um modelo com 90% de sensibilidade e
+90% de especificidade, que qualquer fornecedor apresentaria com orgulho.
+"""
+    )
+    # A figura é quadrada. Sem conter a largura, o Streamlit a estica até a borda
+    # e o aluno precisa rolar a página para ver a legenda junto com os bonecos —
+    # justamente o que não pode acontecer, porque a comparação entre a fileira
+    # vermelha e a azul é o conteúdo todo desta seção.
+    _, coluna_central, _ = st.columns([1, 2.4, 1])
+    with coluna_central:
+        figura = figura_cem_pessoas()
+        st.pyplot(figura)
+        plt.close(figura)
+
+    st.warning(
+        "Conte os círculos do alarme: **9 verdadeiros positivos e 9 falsos "
+        "positivos**. Metade de todos os alarmes deste modelo é falsa — com 90% "
+        "de sensibilidade e 90% de especificidade, numa prevalência de 10%. Se a "
+        "prevalência cair para 1%, como num rastreamento, a proporção de alarmes "
+        "falsos passa de 90%. Nenhum número do modelo mudou.",
+        icon="⚠️",
+    )
+
+    st.subheader("Chances e razão de verossimilhança")
+    st.markdown(
+        """
+Existe um jeito mais prático de fazer essa conta à beira do leito, sem precisar
+saber a prevalência da população inteira.
+
+**Chance** (em inglês *odds*) é outra forma de escrever probabilidade: uma
+probabilidade de 20% é uma chance de 1 para 4, ou 0,25. A fórmula é
+chance = probabilidade ÷ (1 − probabilidade).
+
+**Razão de verossimilhança** combina sensibilidade e especificidade num número só:
+
+- RV+ = sensibilidade ÷ (1 − especificidade) — o quanto um positivo aumenta a suspeita
+- RV− = (1 − sensibilidade) ÷ especificidade — o quanto um negativo a reduz
+
+E aí a conta fica de uma linha:
+
+> **chance pós-teste = chance pré-teste × razão de verossimilhança**
+
+Leitura clínica rápida da RV+: acima de 10 muda bastante a conduta; entre 5 e 10
+muda moderadamente; entre 2 e 5 muda pouco; perto de 1 o teste não serviu para
+nada.
+
+A vantagem prática é que a **probabilidade pré-teste** pode ser a sua impressão
+sobre aquele paciente específico — história, exame físico, contexto — e não
+precisa ser a prevalência de uma população. É assim que se usa um resultado de
+IA de forma honesta: como mais um dado que move a sua suspeita, e não como
+veredito.
+"""
+    )
+
+    tabela_termos(
+        {
+            "Sensibilidade": "Dos que têm a doença, a proporção que o teste identifica. Não depende da prevalência.",
+            "Especificidade": "Dos que não têm a doença, a proporção que o teste libera. Não depende da prevalência.",
+            "Verdadeiro positivo (VP)": "Tem a doença e o teste apontou.",
+            "Falso positivo (FP)": "Não tem a doença, mas o teste apontou. Gera exame, custo e ansiedade.",
+            "Verdadeiro negativo (VN)": "Não tem a doença e o teste não apontou.",
+            "Falso negativo (FN)": "Tem a doença e o teste deixou passar. Costuma ser o erro mais grave.",
+            "Tabela 2 × 2": "O quadro com as quatro caixas acima. Toda medida de desempenho sai dele.",
+            "Prevalência": "Proporção de pessoas com a doença na população testada.",
+            "Probabilidade pré-teste": "O quanto você já suspeitava antes do resultado. Para uma população, é a prevalência; para um paciente, é o seu julgamento clínico.",
+            "Probabilidade pós-teste": "O quanto você passa a suspeitar depois do resultado.",
+            "VPP": "Dos que deram positivo, a proporção que realmente tem a doença. Despenca quando a prevalência é baixa.",
+            "VPN": "Dos que deram negativo, a proporção que realmente não tem.",
+            "Razão de verossimilhança": "Quanto um resultado multiplica a chance de doença. Combina sensibilidade e especificidade num número só.",
+            "Chance (odds)": "Probabilidade escrita como razão: p ÷ (1 − p). Serve para a conta de Bayes virar uma multiplicação.",
+            "Acurácia": "Proporção total de acertos. Medida enganosa quando a doença é rara: um modelo que diz sempre “não tem” acerta 99% numa prevalência de 1%.",
+            "AUC / curva ROC": "Resume o desempenho em todos os pontos de corte possíveis. Não diz nada sobre qual corte usar, nem sobre o VPP na sua população.",
+        }
+    )
+
+    checagem(
+        [
+            (
+                "Mesmo modelo, mesma sensibilidade. Por que o VPP cai tanto num rastreamento?",
+                "Porque VPP depende da prevalência. Num rastreamento quase todo mundo é saudável, "
+                "então o pequeno percentual de falsos positivos, aplicado a um número enorme de "
+                "pessoas sem a doença, produz mais alarmes falsos do que o total de doentes "
+                "existentes. O denominador do VPP incha, o numerador não.",
+            ),
+            (
+                "Uma RV+ de 9 quer dizer o quê, na prática?",
+                "Que um resultado positivo multiplica por 9 a **chance** de a pessoa ter a doença. "
+                "Se a sua suspeita pré-teste era de 10% (chance de 1 para 9, ou 0,11), a chance "
+                "pós-teste vira 1,0 — uma probabilidade de 50%. Pela leitura clínica, um valor "
+                "entre 5 e 10 altera moderadamente a conduta: ajuda, mas não fecha diagnóstico.",
+            ),
+            (
+                "Um fornecedor diz que o produto tem “95% de acurácia”. Qual a pergunta que falta?",
+                "Pelo menos duas. **Medido em que população, com que prevalência?** — porque "
+                "acurácia alta é trivial quando a doença é rara: um modelo que responde sempre "
+                "“não tem” acerta 99% dos casos numa prevalência de 1%. E **qual é a sensibilidade "
+                "e a especificidade separadamente?** — porque a acurácia junta as duas e esconde "
+                "qual dos dois erros o modelo comete.",
+            ),
+        ]
+    )
+    fim_preparacao("3")
+
+
+# ------------------------------------------------------------------------------
+# PREPARAÇÃO 4 — para "Onde o modelo olhou"
+# ------------------------------------------------------------------------------
+def preparacao_4():
+    abrir_preparacao(
+        "4",
+        "O módulo 4 desenha um mapa de calor sobre a radiografia. Para ler esse "
+        "mapa sem se enganar — e o risco de se enganar aqui é alto — você precisa "
+        "de uma intuição mínima de como a rede processa a imagem por partes.",
+        "convolução, mapa de características, média espacial e o que é explicabilidade",
+    )
+
+    st.subheader("Convolução: um detector de padrão que desliza")
+    st.markdown(
+        """
+A operação básica da rede se chama **convolução**, e a ideia é simples.
+
+Imagine um quadradinho de 3 × 3 que você desliza por cima da imagem inteira,
+parando em cada posição e perguntando: *"o que está aqui embaixo se parece com o
+padrão que eu procuro?"*. Esse quadradinho é um **filtro**, e o resultado é um
+novo mapa que diz, posição por posição, o quanto o padrão apareceu.
+
+O ponto importante: **o mesmo filtro é usado na imagem toda**. A rede não aprende
+"borda no canto superior esquerdo", aprende "borda", e procura em todo lugar.
+
+Empilhando camadas, os padrões ficam mais complexos. As primeiras camadas acham
+bordas e manchas; as do meio, texturas; as últimas, formas grandes. Nenhuma
+delas foi programada para achar nada específico — os filtros saíram do treino.
+"""
+    )
+
+    st.subheader("O que sobra no fim: 1.024 mapas de 7 × 7")
+    st.markdown(
+        """
+Depois de todas as camadas, uma imagem de 224 × 224 virou **1.024 mapas de
+7 × 7**. São 1.024 detectores diferentes, cada um devolvendo um mapinha que diz
+onde ele encontrou o padrão dele.
+
+Faça a conta do que isso significa para a explicação: 224 dividido por 7 dá 32.
+**Cada célula do mapa cobre um quadrado de 32 × 32 pixels da imagem** — algo em
+torno de 5 cm num tórax adulto.
+
+Por isso o mapa de calor que você vai ver tem cara de mancha borrada. Não é
+defeito do desenho: é a resolução real da explicação. Ela aponta uma **região**,
+nunca uma estrutura.
+"""
+    )
+
+    st.subheader("Como 1.024 mapas viram um número só")
+    st.markdown(
+        """
+Faltam dois passos, e eles são o motivo de o mapa desta aula ser exato:
+
+1. **Média espacial** — de cada um dos 1.024 mapas se tira a média, e sobram
+   1.024 números. A informação de *onde* é descartada aqui.
+2. **Camada linear** — esses 1.024 números são multiplicados por pesos e
+   somados, mais uma constante, dando o logito daquele achado.
+
+Como o penúltimo passo é uma média simples, dá para trocar a ordem das
+operações: em vez de tirar a média e depois combinar, você combina primeiro e
+tira a média no fim. O resultado é o mesmo — e o que existe antes da média é
+justamente um mapa que diz, região por região, o quanto ela empurrou o logito.
+
+É isso que o módulo 4 desenha. Não é uma estimativa: é a conta da rede,
+reorganizada.
+"""
+    )
+
+    st.error(
+        "**Atenção a uma palavra com dois sentidos nesta aula.** No módulo 4, "
+        "**viés** é o nome técnico da constante que se soma no fim da equação — "
+        "em inglês, *bias*. Não tem relação nenhuma com o **viés algorítmico** do "
+        "módulo 7, que é o problema social de o modelo funcionar pior para alguns "
+        "grupos de pessoas. Mesma palavra em português, dois assuntos "
+        "completamente diferentes.",
+        icon="🛑",
+    )
+
+    st.subheader("Explicabilidade não é garantia de qualidade")
+    st.markdown(
+        """
+**Explicabilidade** é o campo que tenta tornar legível a decisão de um modelo.
+A alternativa é a **caixa-preta**: um sistema que entrega a resposta sem nenhuma
+pista de como chegou nela.
+
+Só que existe um limite que costuma ser omitido nas apresentações comerciais:
+o mapa mostra **quais pixels entraram na conta**, e não se o raciocínio foi bom.
+Um modelo que aprendeu um atalho — um dreno de tórax, eletrodos, a marca de um
+aparelho portátil no canto — produz mapas de aparência perfeitamente plausível.
+
+A conclusão prática é: explicabilidade serve para **encontrar erros**, não para
+confirmar acertos. Um mapa estranho é sinal de alerta; um mapa bonito não é
+selo de qualidade.
+"""
+    )
+
+    tabela_termos(
+        {
+            "Convolução": "A operação básica da rede: deslizar um filtro pequeno pela imagem inteira procurando um padrão.",
+            "Filtro (kernel)": "O quadradinho de números que define o padrão procurado. Sai do treino, não é escrito à mão.",
+            "Mapa de características": "O resultado de aplicar um filtro: um mapa que diz, posição por posição, o quanto o padrão apareceu.",
+            "Média espacial": "Reduzir cada mapa a um número só, tirando a média. Aqui é onde a informação de posição se perde.",
+            "Camada linear": "A última etapa: multiplica os números por pesos, soma tudo e mais uma constante, e devolve o logito.",
+            "Viés (bias)": "A constante somada na camada linear. ATENÇÃO: nada a ver com viés algorítmico, que é o assunto do módulo 7.",
+            "Explicabilidade": "O conjunto de técnicas que tentam tornar legível a decisão de um modelo.",
+            "Mapa de ativação (CAM)": "O mapa de calor que mostra a contribuição de cada região. Nesta arquitetura ele é exato, não aproximado.",
+            "Grad-CAM": "Versão aproximada do mesmo mapa, usada em arquiteturas que não terminam com média espacial. Aqui não é necessária.",
+            "Caixa-preta": "Sistema que entrega a resposta sem pista de como chegou nela.",
+        }
+    )
+
+    checagem(
+        [
+            (
+                "Qual é a resolução real da explicação que o módulo 4 desenha?",
+                "**7 × 7**, ampliada depois para 224 × 224 só para ficar visível. Cada célula "
+                "original cobre 32 × 32 pixels da entrada, mais ou menos 5 cm de tórax. Por isso o "
+                "mapa aponta uma região e nunca uma estrutura: ele não consegue distinguir o "
+                "coração da aorta ao lado.",
+            ),
+            (
+                "O mapa caiu em cima do pulmão certo. Isso prova que o modelo raciocinou certo?",
+                "Não. Prova apenas que aqueles pixels entraram na conta. Um modelo que aprendeu a "
+                "detectar o dreno de tórax em vez do pneumotórax também produz um mapa em cima do "
+                "tórax, e igualmente convincente. Explicabilidade serve para achar erro, não para "
+                "confirmar acerto.",
+            ),
+            (
+                "A palavra “viés” aparece no módulo 4 e no módulo 7. É a mesma coisa?",
+                "Não, e essa é uma das confusões mais fáceis de cometer nesta aula. No módulo 4, "
+                "viés é a constante somada no fim da equação — um detalhe técnico sem nenhuma carga "
+                "social. No módulo 7, viés algorítmico é o modelo funcionar pior para determinados "
+                "grupos de pessoas. Mesma palavra, assuntos sem relação.",
+            ),
+        ]
+    )
+    fim_preparacao("4")
+
+
+# ------------------------------------------------------------------------------
+# PREPARAÇÃO 5 — para "Modelos discordam entre si"
+# ------------------------------------------------------------------------------
+def preparacao_5():
+    abrir_preparacao(
+        "5",
+        "O módulo 5 roda a mesma radiografia em vários modelos e mostra que eles "
+        "discordam. Para entender por que — e por que isso não é um defeito de "
+        "fabricação — você precisa saber de onde vieram os dados de treino e "
+        "como os rótulos foram produzidos.",
+        "base de dados, divisão treino/validação/teste, rotulação automática e mudança de distribuição",
+    )
+
+    st.subheader("De onde vêm as bases")
+    st.markdown(
+        """
+Um modelo não sabe medicina: ele sabe a base em que foi treinado. E as bases
+públicas de radiografia de tórax vieram de lugares bem específicos:
+
+| Base | Onde | Tamanho aproximado |
+|---|---|---|
+| **ChestX-ray14 (NIH)** | EUA, National Institutes of Health | 112 mil imagens |
+| **CheXpert** | EUA, Stanford Hospital | 224 mil imagens |
+| **MIMIC-CXR** | EUA, Beth Israel Deaconess, Boston | 370 mil imagens |
+| **PadChest** | Espanha, Hospital San Juan, Alicante | 160 mil imagens |
+| **RSNA Pneumonia** | EUA, subconjunto do NIH re-anotado | tarefa única |
+
+Quatro das cinco são americanas. Uma é espanhola. Nenhuma é brasileira. Cada uma
+carrega a população, os equipamentos, os protocolos e as prevalências do lugar
+onde foi coletada — e o modelo aprende tudo isso junto com a doença.
+"""
+    )
+
+    st.subheader("Como os rótulos foram feitos")
+    st.markdown(
+        """
+Aqui está o detalhe que mais surpreende quem vem da medicina.
+
+Ninguém sentou e revisou 370 mil radiografias marcando os achados. Seria
+inviável. O que se fez foi escrever **programas de leitura de texto** que passam
+pelo laudo escrito e decidem, a partir das palavras, quais achados marcar.
+
+Dois desses programas aparecem nesta aula: o **NegBio** e o **rotulador
+CheXpert**. Eles precisam resolver problemas de linguagem nada triviais —
+distinguir "sem sinais de derrame" de "derrame", entender "não se pode excluir
+pneumonia", lidar com "provável", "suspeita de", "inalterado em relação ao
+exame anterior".
+
+A acurácia desses programas fica em torno de **90%**. Faça a conta: cerca de
+**1 em cada 10 rótulos de treino está errado**. É o que se chama de **ruído de
+rótulo**, e o modelo aprende o ruído junto com o sinal.
+
+O módulo 5 tem um experimento montado exatamente em cima disso: dois modelos
+treinados nas **mesmas imagens** do MIMIC, mudando só o programa que leu os
+laudos. Toda diferença que sobrar entre eles vem da rotulação, e de mais nada.
+"""
+    )
+
+    st.subheader("Treino, validação e teste")
+    st.markdown(
+        """
+Os dados são sempre divididos em três partes, e misturá-las é um dos erros
+metodológicos mais comuns em artigos de IA médica:
+
+- **Treino** — os exemplos usados para ajustar os pesos.
+- **Validação** — usados para afinar decisões, como o ponto de corte.
+- **Teste** — guardados até o fim, para medir o desempenho final uma única vez.
+
+Uma armadilha específica de imagem médica: se o mesmo **paciente** tiver exames
+no treino e no teste, o modelo pode ir bem simplesmente por reconhecer aquele
+tórax, e não a doença. Por isso a divisão precisa ser **por paciente**, nunca
+por imagem.
+"""
+    )
+
+    st.subheader("Mudança de distribuição")
+    st.markdown(
+        """
+**Distribuição** é o perfil estatístico dos dados: que aparelhos, que
+proporção de exames de leito, que faixa etária, que prevalências.
+
+**Mudança de distribuição** é o que acontece quando o modelo sai do lugar onde
+foi treinado e encontra outro perfil. E é a principal razão pela qual desempenho
+publicado não se transfere.
+
+Um exemplo concreto: o MIMIC é uma base de UTI e emergência, cheia de exames de
+leito com tubos, drenos e eletrodos no campo. Um modelo treinado ali viu tanto
+dreno de tórax junto de pneumotórax que pode ter aprendido a **procurar o
+dreno**. Funciona bem na UTI de origem. No ambulatório, onde ninguém tem dreno,
+o desempenho cai — e ninguém entende por quê.
+
+É por isso que se exige **validação externa**: medir o desempenho em dados de
+outro hospital, de preferência de outro país, antes de acreditar no número.
+"""
+    )
+
+    tabela_termos(
+        {
+            "Base de dados (dataset)": "O conjunto de exames usado para treinar ou avaliar. Carrega a população e os equipamentos de onde veio.",
+            "Treino / validação / teste": "As três divisões dos dados. Em imagem médica, a divisão precisa ser por paciente, não por imagem.",
+            "Rotulação automática": "Produzir os rótulos por programa, em vez de revisão humana. Foi como quase todas essas bases foram montadas.",
+            "Processamento de linguagem natural (PLN)": "A área que faz o computador interpretar texto. Aqui, ler laudos para extrair achados.",
+            "NegBio": "Um dos programas que leem laudos. Especializado em detectar negação (“sem sinais de…”).",
+            "Rotulador CheXpert": "Outro programa de leitura de laudos, com uma categoria explícita para incerteza.",
+            "Ruído de rótulo": "Rótulos errados no treino. Em torno de 10% nessas bases. O modelo aprende o erro junto.",
+            "Distribuição": "O perfil estatístico dos dados: aparelhos, protocolos, idade, prevalências.",
+            "Mudança de distribuição": "O modelo encontrar, no uso real, um perfil diferente do de treino. Principal causa de queda de desempenho.",
+            "Generalização": "A capacidade de funcionar bem em dados nunca vistos, de outro contexto.",
+            "Validação externa": "Medir o desempenho em dados de outra instituição. Sem isso, o número publicado não significa muita coisa.",
+        }
+    )
+
+    checagem(
+        [
+            (
+                "Os modelos mimic_ch e mimic_nb diferem em quê, exatamente?",
+                "Só no programa que leu os laudos para gerar os rótulos: o rotulador CheXpert num, "
+                "o NegBio no outro. Mesmas imagens, mesmos pacientes, mesmo hospital, mesma "
+                "arquitetura, mesmo treino. É por isso que comparar os dois isola o efeito da "
+                "rotulação — qualquer discordância entre eles vem de como a palavra do radiologista "
+                "virou rótulo.",
+            ),
+            (
+                "Por que um modelo com AUC de 0,95 publicada pode falhar no seu hospital?",
+                "Porque a AUC foi medida na distribuição de origem. Se o seu serviço tem outros "
+                "aparelhos, outra proporção de exames de leito, outra faixa etária ou outra "
+                "prevalência, o modelo encontra um perfil que não é o que ele aprendeu. Some a "
+                "isso a possibilidade de ele ter aprendido atalhos que existiam lá e não existem "
+                "aqui. É por isso que se exige validação externa.",
+            ),
+            (
+                "O que é ruído de rótulo e por que ele é inevitável nessas bases?",
+                "São rótulos errados nos dados de treino. É inevitável porque revisar 370 mil "
+                "exames à mão não é viável, então os rótulos foram extraídos por programas que "
+                "leem laudos — e esses programas acertam cerca de 90%. O modelo aprende os 10% "
+                "errados com a mesma convicção com que aprende o resto.",
+            ),
+        ]
+    )
+    fim_preparacao("5")
+
+
+# ------------------------------------------------------------------------------
+# PREPARAÇÃO 6 — para "Teste de robustez"
+# ------------------------------------------------------------------------------
+def preparacao_6():
+    abrir_preparacao(
+        "6",
+        "O módulo 6 mexe na imagem de propósito e observa a saída do modelo "
+        "mudar. Esta página explica o que se espera de um modelo robusto, o que "
+        "cada perturbação simula na vida real e por que uma delas, o "
+        "espelhamento, é um caso à parte em medicina.",
+        "invariância, robustez, correção de gama e por que espelhar troca a lateralidade",
+    )
+
+    st.subheader("Invariância: o que deveria não mudar")
+    st.markdown(
+        """
+**Invariância** é a propriedade de um resultado não mudar quando algo
+irrelevante muda na entrada.
+
+Um radiologista é invariante a um monte de coisa: recebe o exame 10 graus torto,
+dá o mesmo laudo; recebe um pouco mais escuro, dá o mesmo laudo; recebe com uma
+etiqueta no canto, dá o mesmo laudo. Ele sabe, sem pensar, o que é a doença e o
+que é a técnica.
+
+**Uma rede neural não tem essa garantia.** Ela não separa "conteúdo clínico" de
+"condição de aquisição" — para ela é tudo a mesma tabela de números. Se girar a
+imagem mudar muito a saída, isso é uma **fragilidade**, e é um argumento
+concreto para exigir teste local antes de implantar qualquer sistema.
+"""
+    )
+
+    st.subheader("O que cada perturbação simula")
+    st.markdown(
+        """
+As alterações do módulo 6 não são maldade gratuita: cada uma reproduz algo que
+acontece de fato num serviço.
+
+| Perturbação | O que simula na vida real |
+|---|---|
+| **Rotação de 5 a 15 graus** | Paciente mal posicionado, exame feito com pressa, aparelho portátil |
+| **Gama mais claro ou mais escuro** | Exposição diferente, brilho do monitor, exportação feita por outro sistema |
+| **Oclusão de um quadrante** | Etiqueta de chumbo, marcador, campo cortado, artefato de processamento |
+| **Ruído** | Exame de baixa dose, aparelho antigo, criança ou gestante |
+| **Espelhamento horizontal** | Caso à parte — veja a seção seguinte |
+
+**Gama** é o nome do ajuste que clareia ou escurece sem alterar os extremos:
+gama abaixo de 1 clareia os tons médios, acima de 1 escurece. É o equivalente
+digital de mexer no brilho do negatoscópio.
+"""
+    )
+
+    st.subheader("Espelhar não é uma perturbação inocente")
+    st.markdown(
+        """
+O espelhamento horizontal merece atenção separada, porque em medicina ele não é
+uma alteração cosmética: **ele troca direita e esquerda**.
+
+Uma radiografia de tórax normal, espelhada, mostra o coração à direita. Para um
+humano, isso é **dextrocardia** — uma condição rara e relevante, que aparece por
+exemplo no *situs inversus*. Nenhum radiologista deixaria passar.
+
+Por isso o resultado do módulo 6 se lê nos dois sentidos, e os dois são
+informativos:
+
+- Se a saída **quase não mudar**, o modelo está **ignorando lateralidade**. Para
+  achados com lado definido, isso é erro grosseiro.
+- Se a saída **mudar muito** num achado que não tem lado, o modelo está usando
+  alguma pista de orientação que não deveria pesar.
+
+Na prática, existe uma proteção simples e antiga para isso: o **marcador de
+lado**, aquela letra D ou E de chumbo que o técnico posiciona no filme. O modelo
+não lê essa letra — ou, pior, pode ter aprendido a usá-la como atalho.
+"""
+    )
+
+    st.subheader("Por que isso importa na hora de comprar um sistema")
+    st.markdown(
+        """
+O que o módulo 6 faz tem nome no mundo da engenharia: **teste de estresse**.
+É rodar o sistema fora das condições ideais para descobrir onde ele quebra,
+antes que ele quebre sozinho com um paciente.
+
+Nenhuma dessas perturbações é exótica. Todas acontecem num plantão comum. E
+nenhuma delas aparece na AUC publicada no artigo — que foi medida em imagens
+bem enquadradas, bem expostas e bem selecionadas.
+
+É por isso que **controle de qualidade** de IA não é burocracia: é a única forma
+de descobrir que o sistema que você comprou perde desempenho justamente nos
+exames mais difíceis, que são os que mais precisariam de ajuda.
+"""
+    )
+
+    tabela_termos(
+        {
+            "Robustez": "A capacidade de manter o resultado quando a entrada sofre variações irrelevantes.",
+            "Perturbação": "Uma alteração deliberada na imagem, feita para testar o modelo.",
+            "Invariância": "A propriedade de o resultado não mudar diante de uma alteração que não deveria importar.",
+            "Gama": "Ajuste que clareia ou escurece os tons médios sem mexer nos extremos. Equivale ao brilho do negatoscópio.",
+            "Contraste": "A diferença entre claro e escuro na imagem.",
+            "Oclusão": "Apagar deliberadamente um pedaço da imagem, para ver o quanto aquela região pesava.",
+            "Ruído": "Variação aleatória nos valores dos pixels. Típico de exame de baixa dose.",
+            "Lateralidade": "A distinção entre direita e esquerda do paciente — que não é a direita e a esquerda de quem olha a imagem.",
+            "Dextrocardia": "Coração posicionado à direita. É o que uma imagem espelhada simula acidentalmente.",
+            "Situs inversus": "Inversão da posição dos órgãos internos. Condição rara em que a dextrocardia é real.",
+            "Marcador de lado": "A letra de chumbo (D ou E) posicionada pelo técnico no momento do exame.",
+            "Teste de estresse": "Rodar o sistema fora das condições ideais, de propósito, para achar onde ele falha.",
+            "Controle de qualidade": "O processo contínuo de verificar o desempenho do sistema no serviço real, e não só no artigo.",
+        }
+    )
+
+    checagem(
+        [
+            (
+                "Girar a radiografia 15 graus deveria mudar o laudo?",
+                "Não. É uma alteração puramente técnica: nenhuma doença foi criada ou apagada. Um "
+                "radiologista daria exatamente o mesmo laudo. Se a saída do modelo mudar de forma "
+                "relevante, você descobriu uma fragilidade — e algo que a AUC publicada no artigo "
+                "jamais teria mostrado.",
+            ),
+            (
+                "Se a saída de cardiomegalia quase não mudar ao espelhar a imagem, o que isso diz?",
+                "Que o modelo está ignorando lateralidade: ele reconhece “uma silhueta grande no "
+                "meio do tórax” sem se importar de que lado ela está. A imagem espelhada mostra um "
+                "coração à direita, o que para um humano seria dextrocardia. O modelo não notou.",
+            ),
+            (
+                "Qual a diferença entre isto e um “ataque adversarial”?",
+                "A intenção e a magnitude. As perturbações do módulo 6 são alterações banais, que "
+                "acontecem sozinhas num plantão. Um ataque adversarial é uma alteração calculada "
+                "de propósito para enganar aquele modelo específico, muitas vezes imperceptível a "
+                "olho nu. O primeiro é um problema de qualidade; o segundo, de segurança.",
+            ),
+        ]
+    )
+    fim_preparacao("6")
+
+
+# ------------------------------------------------------------------------------
+# PREPARAÇÃO 7 — para "Viés: o que a rede aprendeu sem querer"
+# ------------------------------------------------------------------------------
+def preparacao_7():
+    abrir_preparacao(
+        "7",
+        "O módulo 7 é o mais desconfortável da aula, e o que mais depende de "
+        "vocabulário preciso para não ser mal entendido. Esta página monta esse "
+        "vocabulário antes, para que a demonstração seja lida como evidência de "
+        "risco algorítmico — que é o que ela é.",
+        "correlação e causa, aprendizado por atalho, variável de confusão e equidade",
+    )
+
+    st.subheader("O modelo só sabe procurar correlação")
+    st.markdown(
+        """
+Comece por aqui, porque tudo o resto decorre disto.
+
+Uma rede neural não busca causa. Ela busca **qualquer padrão na imagem que ajude
+a acertar o rótulo**. Se existir na base uma pista mais fácil que a doença, e
+essa pista estiver correlacionada com o rótulo, a rede vai usar a pista — não
+porque seja preguiçosa, mas porque nada no treino a obriga a preferir a causa.
+
+**Correlação** é duas coisas andarem juntas. **Causa** é uma produzir a outra.
+O treino só enxerga a primeira.
+"""
+    )
+
+    st.subheader("Aprendizado por atalho")
+    st.markdown(
+        """
+Quando o modelo resolve a tarefa pela pista fácil em vez da razão certa, dá-se
+o nome de **aprendizado por atalho** (*shortcut learning*). Alguns exemplos
+reais, documentados na literatura de radiografia de tórax:
+
+- **O dreno de tórax.** Quem tem pneumotórax drenado tem dreno na imagem. Um
+  modelo pode aprender a detectar o dreno — e o dreno aparece justamente depois
+  de o problema já ter sido diagnosticado e tratado. Ele acerta o passado, não
+  ajuda no presente.
+- **A marca do aparelho portátil.** Exames de leito são feitos em pacientes mais
+  graves. Se o aparelho portátil deixa alguma assinatura na imagem, o modelo
+  aprende a usá-la como indicador de gravidade.
+- **A anotação gravada no canto.** Letras, setas e marcadores queimados na
+  imagem carregam informação sobre o contexto do exame.
+
+Repare no padrão: em todos os casos o modelo vai **muito bem na validação**,
+porque a pista existe também lá. Ele só falha quando muda o contexto.
+"""
+    )
+
+    st.subheader("Variável de confusão")
+    st.markdown(
+        """
+O nome estatístico para a pista que se intromete é **variável de confusão**
+(*confounder*): algo associado ao mesmo tempo à imagem e ao desfecho, criando
+uma correlação que não é causal.
+
+Você já conhece isso da epidemiologia. A novidade em IA é que, num estudo
+clínico, você precisa **declarar** os confundidores para ajustar por eles — e
+aqui o modelo encontra sozinho confundidores que ninguém listou, que ninguém
+mediu e que, muitas vezes, ninguém consegue sequer nomear depois.
+"""
+    )
+
+    st.subheader("Etnia autodeclarada é categoria social")
+    st.markdown(
+        """
+Esta é a parte que exige mais cuidado de leitura.
+
+Nas bases americanas, a etnia é um campo do registro hospitalar **preenchido
+pelo próprio paciente**. É uma categoria **social e administrativa**, construída
+historicamente — não é uma medida biológica, não corresponde a nenhuma divisão
+genética bem definida e não descreve nenhuma característica do pulmão.
+
+Em 2022, Gichoya e colaboradores mostraram no *Lancet Digital Health* que redes
+neurais preveem esse campo a partir de imagens médicas com desempenho alto — e
+continuam conseguindo com a imagem borrada, cortada ou degradada a ponto de
+nenhum radiologista reconhecer nada. Os autores testaram e descartaram as
+explicações óbvias: não é densidade óssea, não é índice de massa corporal. **Até
+hoje não se sabe qual é o sinal.**
+
+Leia o resultado pelo que ele é: a demonstração de que **a informação vaza para
+dentro da imagem**. Se vaza, qualquer outro modelo treinado nessas mesmas bases
+pode estar usando esse sinal como atalho, sem que ninguém tenha pedido e sem que
+ninguém perceba.
+"""
+    )
+
+    st.subheader("Onde isso vira dano ao paciente")
+    st.markdown(
+        """
+O desdobramento prático veio em outro estudo, de Seyyed-Kalantari e
+colaboradores, publicado na *Nature Medicine* em 2021: modelos de radiografia de
+tórax **subdiagnosticam** de forma sistemática pacientes de grupos
+historicamente menos assistidos. Ou seja, deixam de sinalizar doença exatamente
+em quem tem menos acesso a uma segunda opinião.
+
+**Subdiagnóstico** aqui quer dizer classificar como "sem achados" alguém que
+tem achados. É o erro mais caro dos dois, porque ninguém volta para conferir um
+exame que deu normal.
+
+O modelo não foi programado para isso. Ele reproduziu o que estava nos dados —
+e nos dados estavam décadas de desigualdade de acesso, de tempo de consulta e de
+qualidade de registro.
+
+**Equidade** (*fairness*) é o campo que estuda esse problema, e a ferramenta
+prática dele é a **auditoria por subgrupo**: em vez de reportar um número de
+desempenho, reportar um número por grupo — por sexo, faixa etária, etnia, tipo
+de aparelho, unidade. Um modelo com AUC 0,92 no geral pode ter 0,95 num grupo e
+0,78 em outro, e o número geral esconde isso completamente.
+"""
+    )
+
+    st.info(
+        "**O que fazer com esta informação.** A conclusão não é “não use IA”. É "
+        "que desempenho agregado é insuficiente como critério de compra ou de "
+        "publicação. Peça o desempenho **por subgrupo** da sua população, e "
+        "desconfie quando a resposta for que ninguém mediu.",
+        icon="💡",
+    )
+
+    tabela_termos(
+        {
+            "Correlação": "Duas coisas andarem juntas. É tudo o que o treino consegue enxergar.",
+            "Causa": "Uma coisa produzir a outra. A rede não distingue causa de correlação.",
+            "Aprendizado por atalho": "O modelo resolver a tarefa por uma pista fácil em vez da razão certa. Vai bem na validação e falha ao mudar de contexto.",
+            "Variável de confusão": "Algo associado tanto à imagem quanto ao desfecho, criando correlação não causal. Aqui, o modelo acha sozinho confundidores que ninguém listou.",
+            "Viés algorítmico": "O modelo funcionar sistematicamente pior para determinados grupos de pessoas. ATENÇÃO: não é o “viés” do módulo 4, que é a constante da equação.",
+            "Etnia autodeclarada": "Campo do registro hospitalar preenchido pelo paciente. Categoria social e administrativa, não medida biológica.",
+            "Equidade (fairness)": "O campo que estuda e mede desempenho desigual entre grupos.",
+            "Auditoria por subgrupo": "Reportar desempenho separado por grupo, em vez de um número agregado que esconde a diferença.",
+            "Subdiagnóstico": "Classificar como normal alguém que tem achados. É o erro mais caro, porque ninguém revisa um exame que deu normal.",
+        }
+    )
+
+    checagem(
+        [
+            (
+                "O modelo acerta a etnia autodeclarada. Isso quer dizer que existe diferença biológica no pulmão?",
+                "Não. Etnia autodeclarada é uma categoria social preenchida pelo paciente no "
+                "registro, não uma medida biológica. Os autores do estudo testaram e descartaram "
+                "as explicações fisiológicas óbvias, e até hoje não se sabe qual é o sinal usado. "
+                "O que o resultado demonstra é que a informação está recuperável na imagem — e, "
+                "portanto, disponível como atalho para qualquer outro modelo treinado ali.",
+            ),
+            (
+                "O que é aprender por atalho? Dê um exemplo de radiografia de tórax.",
+                "É o modelo resolver a tarefa por uma pista correlacionada em vez da razão certa. "
+                "O exemplo clássico é o **dreno de tórax**: quem tem pneumotórax drenado tem dreno "
+                "na imagem, então o modelo pode aprender a detectar o dreno. O problema é que o "
+                "dreno só aparece depois que o pneumotórax já foi diagnosticado e tratado — o "
+                "modelo acerta o passado e não ajuda em nada no presente.",
+            ),
+            (
+                "Como se detecta viés de um modelo na prática, antes de implantar?",
+                "Com **auditoria por subgrupo**: medir o desempenho separadamente por sexo, faixa "
+                "etária, etnia, tipo de aparelho e unidade, em vez de reportar um número só. Um "
+                "modelo com AUC 0,92 no agregado pode ter 0,95 num grupo e 0,78 em outro. Se o "
+                "fornecedor não tiver esses números, a resposta correta é que ninguém sabe se o "
+                "produto é seguro para a sua população.",
+            ),
+        ]
+    )
+    fim_preparacao("7")
+
+
+# ------------------------------------------------------------------------------
+# PREPARAÇÃO 8 — para "Segmentação anatômica"
+# ------------------------------------------------------------------------------
+def preparacao_8():
+    abrir_preparacao(
+        "8",
+        "O módulo 8 muda de tarefa: em vez de devolver uma lista de "
+        "probabilidades, o modelo desenha contornos. Esta página explica as três "
+        "tarefas de IA em imagem, como se mede a qualidade de um contorno e como "
+        "se calcula, a partir dele, uma medida clínica de verdade.",
+        "classificação, segmentação, detecção, máscara e índice cardiotorácico",
+    )
+
+    st.subheader("Três tarefas diferentes, que costumam ser confundidas")
+    st.markdown(
+        """
+Quando alguém diz "IA para imagem", pode estar falando de coisas bem distintas:
+
+| Tarefa | Pergunta que responde | O que devolve |
+|---|---|---|
+| **Classificação** | *O quê?* | Uma lista de probabilidades para a imagem inteira |
+| **Detecção** | *Onde, mais ou menos?* | Caixas retangulares em volta das regiões de interesse |
+| **Segmentação** | *Quais pixels, exatamente?* | Um contorno preciso, pixel a pixel |
+
+Os módulos 1 a 7 usaram **classificação**. O módulo 8 usa **segmentação**.
+
+A diferença prática para o médico é grande. Um classificador devolve um número
+que você aceita ou rejeita, e nada mais. Um segmentador devolve um contorno que
+você **olha e contesta na hora**: se ele desenhou o coração no lugar errado,
+você vê imediatamente, sem precisar de estatística nenhuma.
+
+É por isso que modelos de segmentação costumam ser mais fáceis de implantar com
+segurança: o erro é visível.
+"""
+    )
+
+    st.subheader("Máscara: a resposta pixel a pixel")
+    st.markdown(
+        """
+Para cada estrutura, o modelo devolve um mapa do tamanho da imagem em que cada
+pixel recebe um valor entre 0 e 1: *"o quanto eu acredito que este pixel
+pertence ao coração"*.
+
+Aplicando um corte — em geral **0,5** — esse mapa vira uma **máscara**: uma
+imagem de sim ou não, do mesmo tamanho da original. O **contorno** que aparece
+na tela é apenas a borda dessa máscara.
+
+Repare que o mesmo conceito de **limiar** do módulo 2 reaparece aqui, agora
+aplicado pixel a pixel em vez de uma vez para a imagem inteira. Baixar o corte
+engorda a estrutura; subir, emagrece.
+"""
+    )
+
+    st.subheader("Como se mede a qualidade de um contorno")
+    st.markdown(
+        """
+Não dá para usar sensibilidade e especificidade do mesmo jeito, porque a
+resposta não é um sim ou não por exame — é um sim ou não por pixel, e a
+esmagadora maioria dos pixels é fundo. Usam-se então duas medidas de
+sobreposição:
+
+- **Dice** — o dobro da área em comum, dividido pela soma das duas áreas. Vai de
+  0 (nada em comum) a 1 (contornos idênticos). É a medida mais usada em imagem
+  médica. Acima de 0,90 costuma ser considerado bom para pulmão e coração.
+- **IoU** (interseção sobre união) — a área em comum dividida pela área total
+  coberta pelas duas. Mede a mesma ideia, com valores um pouco mais severos.
+
+As duas comparam o contorno do modelo com o contorno de um especialista. Ou
+seja: continuam dependendo de alguém ter desenhado à mão a resposta certa.
+"""
+    )
+
+    st.subheader("O índice cardiotorácico")
+    st.markdown(
+        """
+O módulo 8 termina calculando uma medida que você já conhece, agora a partir dos
+contornos do modelo.
+
+O **índice cardiotorácico** (ICT) é a razão entre o maior diâmetro transverso da
+silhueta cardíaca e o maior diâmetro interno do tórax. O valor de corte clássico
+é **0,50**: acima disso, sugere-se cardiomegalia.
+
+Mas ele só vale sob condições específicas, e todas elas voltam à preparação 1:
+
+- **Incidência PA.** Em AP o coração é magnificado e o índice sobe falsamente.
+- **Boa inspiração.** Em expiração o tórax comprime e a silhueta alarga.
+- **Paciente em pé.** Em decúbito a distribuição muda.
+
+E ainda uma ressalva do próprio aplicativo: o ICT clássico usa a margem interna
+dos arcos costais, enquanto aqui se usa a extensão dos pulmões como aproximação,
+sobre uma imagem já recortada e reduzida. É demonstração didática, não medição.
+
+Vale a pena fazer o confronto que o módulo propõe: comparar esse ICT com a saída
+de *Cardiomegalia* do módulo 2, para a mesma radiografia. Quando os dois
+discordam, você tem um caso concreto para discutir qual dos dois é auditável.
+"""
+    )
+
+    tabela_termos(
+        {
+            "Classificação": "Responder “o quê” para a imagem inteira. É o que fazem os módulos 1 a 7.",
+            "Detecção": "Responder “onde”, com caixas retangulares em volta das regiões de interesse.",
+            "Segmentação": "Responder “quais pixels”, com contorno preciso. É o módulo 8.",
+            "Máscara": "A imagem de sim ou não que resulta de aplicar um corte ao mapa de confiança.",
+            "Contorno": "A borda da máscara — o que aparece desenhado sobre a radiografia.",
+            "Limiar por pixel": "O corte aplicado a cada pixel para transformar confiança em máscara. Em geral 0,5.",
+            "PSPNet": "A arquitetura de segmentação usada nesta aula, treinada na base ChestX-Det.",
+            "Dice": "Medida de sobreposição entre o contorno do modelo e o de um especialista. Vai de 0 a 1.",
+            "IoU": "Interseção sobre união. Mede a mesma sobreposição que o Dice, com valores mais severos.",
+            "Índice cardiotorácico (ICT)": "Razão entre o maior diâmetro do coração e o maior diâmetro interno do tórax. Corte clássico em 0,50, válido só em PA com boa inspiração.",
+        }
+    )
+
+    checagem(
+        [
+            (
+                "Qual a diferença entre classificação e segmentação?",
+                "Classificação responde **o quê** para a imagem inteira e devolve uma lista de "
+                "probabilidades. Segmentação responde **quais pixels** e devolve um contorno. A "
+                "primeira te dá um número para aceitar ou rejeitar; a segunda te dá um desenho "
+                "que você confere com os próprios olhos.",
+            ),
+            (
+                "Por que um modelo de segmentação é mais fácil de auditar do que um classificador?",
+                "Porque o erro é visível sem estatística. Se o contorno do coração cair sobre o "
+                "pulmão, qualquer pessoa vê na hora. Já um classificador que devolve 0,62 para "
+                "cardiomegalia não dá pista nenhuma de como chegou ali — para saber se está certo "
+                "você precisa de um estudo de validação inteiro.",
+            ),
+            (
+                "Em que situações o índice cardiotorácico não vale?",
+                "Fora da incidência PA com boa inspiração e paciente em pé. Em **AP** — exame de "
+                "leito, UTI — o coração fica longe do detector e aparece magnificado, elevando o "
+                "índice falsamente. Em **expiração**, o tórax comprime e a silhueta alarga. Em "
+                "**decúbito**, a distribuição muda. São exatamente as condições da preparação 1, "
+                "reaparecendo aqui com consequência numérica.",
+            ),
+        ]
+    )
+    fim_preparacao("8")
+
+
+# ------------------------------------------------------------------------------
+# Ligação entre o número do módulo e a função da sua página de preparação.
+# O roteador usa este dicionário; acrescentar um módulo novo é acrescentar uma
+# linha aqui e outra na lista AULA.
+# ------------------------------------------------------------------------------
+PREPARACOES = {
+    "1": preparacao_1,
+    "2": preparacao_2,
+    "3": preparacao_3,
+    "4": preparacao_4,
+    "5": preparacao_5,
+    "6": preparacao_6,
+    "7": preparacao_7,
+    "8": preparacao_8,
+}
 
 # ------------------------------------------------------------------------------
 # MÓDULO 1 — O que o modelo realmente vê
@@ -2343,17 +3990,31 @@ medidas objetivas.
 
 
 def main():
-    modulo, caminho = barra_lateral()
+    pagina, caminho = barra_lateral()
 
-    # A página inicial é a única que não precisa de imagem nenhuma.
-    if modulo == MODULOS[0]:
+    # ---- Páginas que NÃO dependem de radiografia -----------------------------
+    # A abertura e as oito preparações abrem sempre. Isso é proposital: o aluno
+    # consegue ler toda a parte conceitual antes da aula, sem ter imagem nenhuma
+    # à mão, e o professor consegue projetar a preparação sem carregar exame.
+    if pagina == PAGINA_AUTOR:
+        pagina_autor()
+        return
+
+    if pagina == PAGINA_INICIO:
         pagina_inicio()
         return
 
+    if pagina in NUMERO_DA_PREPARACAO:
+        PREPARACOES[NUMERO_DA_PREPARACAO[pagina]]()
+        return
+
+    # ---- Daqui para baixo são os módulos, que precisam da imagem -------------
     if caminho is None:
-        cabecalho(modulo)
+        cabecalho(pagina)
         st.warning(
-            "Escolha uma radiografia na barra lateral, à esquerda, para continuar.",
+            "Escolha uma radiografia na barra lateral, à esquerda, para continuar. "
+            "Se quiser apenas ler a parte conceitual por enquanto, abra a página "
+            "de preparação correspondente — ela funciona sem imagem nenhuma.",
             icon="👈",
         )
         return
@@ -2361,7 +4022,7 @@ def main():
     try:
         imagem, info, recortada, reduzida = preparar(caminho)
     except Exception as erro:
-        cabecalho(modulo)
+        cabecalho(pagina)
         st.error(
             "Não consegui ler esta imagem.\n\n"
             f"Detalhe técnico: `{erro}`\n\n"
@@ -2371,25 +4032,27 @@ def main():
         )
         return
 
+    numero = NUMERO_DO_MODULO[pagina]
+
     # As falhas de carregamento de modelo viram RuntimeError com uma mensagem já
     # escrita para o aluno (veja _construir_modelo). Sem este try, o Streamlit
     # despejaria um traceback de 30 linhas na tela, escondendo a instrução útil.
     try:
-        if modulo == MODULOS[1]:
+        if numero == "1":
             pagina_preprocessamento(imagem, info, recortada, reduzida)
-        elif modulo == MODULOS[2]:
+        elif numero == "2":
             pagina_inferencia(reduzida)
-        elif modulo == MODULOS[3]:
+        elif numero == "3":
             pagina_bayes()
-        elif modulo == MODULOS[4]:
+        elif numero == "4":
             pagina_explicabilidade(reduzida)
-        elif modulo == MODULOS[5]:
+        elif numero == "5":
             pagina_discordancia(reduzida)
-        elif modulo == MODULOS[6]:
+        elif numero == "6":
             pagina_robustez(recortada)
-        elif modulo == MODULOS[7]:
+        elif numero == "7":
             pagina_vies(recortada)
-        elif modulo == MODULOS[8]:
+        elif numero == "8":
             pagina_segmentacao(recortada)
     except RuntimeError as erro:
         st.error(str(erro), icon="⚠️")
