@@ -773,10 +773,16 @@ def _construir_modelo(construtor, descricao: str):
             pasta = "~/.torchxrayvision/models_data"
         raise RuntimeError(
             f"Não consegui carregar {descricao}.\n\n"
-            "A causa mais provável é um download interrompido, que deixou o "
-            "arquivo de pesos pela metade. Apague o conteúdo da pasta de cache "
-            "abaixo e abra este módulo de novo — o download recomeça do zero:\n\n"
-            f"`{pasta}`\n\n"
+            "Há duas causas prováveis, e o que fazer é diferente em cada uma:\n\n"
+            "**1. Download interrompido.** Se a conexão caiu no meio, o arquivo de "
+            "pesos ficou pela metade e não se conserta sozinho — todas as "
+            "tentativas seguintes vão falhar igual. Apague o conteúdo da pasta de "
+            f"cache abaixo e abra este módulo de novo:\n\n`{pasta}`\n\n"
+            "**2. Memória ou espaço insuficientes.** Se você está usando a versão "
+            "publicada na internet, é o mais provável: hospedagem gratuita tem "
+            "limite apertado, e os modelos deste módulo são grandes. Não há o que "
+            "apagar nesse caso — rode o material na sua própria máquina, com "
+            "`streamlit run aula_ia_radiologia.py`.\n\n"
             f"Detalhe técnico: `{erro}`"
         ) from erro
 
@@ -1311,6 +1317,33 @@ def cabecalho(titulo: str, subtitulo: str = ""):
     if subtitulo:
         st.caption(subtitulo)
     st.info(AVISO_EDUCACIONAL, icon="⚠️")
+
+
+def aviso_modelo_pesado(megabytes: int):
+    """
+    Avisa o tamanho do download antes de o aluno apertar o botão.
+
+    Os modelos dos módulos 7 e 8 são MUITO maiores que os de classificação: o de
+    idade tem cerca de 440 MB, contra 30 MB de um DenseNet. Isso muda a
+    experiência em dois cenários concretos:
+
+      - numa sala de aula com trinta alunos na mesma rede, baixar isso ao mesmo
+        tempo trava a conexão de todo mundo;
+      - numa hospedagem gratuita, como o Streamlit Community Cloud, o modelo
+        pode simplesmente não caber na memória ou no disco disponíveis.
+
+    Nos dois casos, é melhor o aluno saber antes de clicar do que descobrir
+    depois de esperar. Não tentamos detectar automaticamente se estamos na
+    nuvem: o Community Cloud não expõe isso de forma documentada, e um aviso
+    honesto que aparece sempre é mais confiável que uma detecção que pode falhar.
+    """
+    st.warning(
+        f"Este módulo baixa um modelo de aproximadamente **{megabytes} MB** na "
+        "primeira vez, e o download demora. Se você estiver usando a versão "
+        "publicada na internet, ele pode não carregar — a hospedagem gratuita "
+        "tem limite de memória. Rodando na sua própria máquina, funciona.",
+        icon="📦",
+    )
 
 
 # ------------------------------------------------------------------------------
@@ -3713,6 +3746,8 @@ consiga cravar a idade olhando o exame.
 """
         )
 
+        aviso_modelo_pesado(440)
+
         if st.button("Estimar a idade a partir desta radiografia", key="botao_idade"):
             try:
                 with st.spinner("Baixando e rodando o modelo de idade…"):
@@ -3770,6 +3805,8 @@ Até hoje não se sabe qual é o sinal que a rede usa. Não é densidade óssea,
             "outro modelo treinado nessas mesmas bases.",
             icon="🛑",
         )
+
+        aviso_modelo_pesado(85)
 
         if st.button("Rodar o experimento", key="botao_etnia"):
             try:
@@ -3880,6 +3917,8 @@ medidas objetivas.
         default=["Left Lung", "Right Lung", "Heart"],
         format_func=lambda e: ESTRUTURAS[e],
     )
+
+    aviso_modelo_pesado(260)
 
     if not st.button("Rodar a segmentação", key="botao_segmentacao"):
         st.info("Clique no botão para baixar e rodar o modelo de segmentação.")

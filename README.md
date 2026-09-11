@@ -120,6 +120,44 @@ e o programa avisa qual pasta apagar.
 
 ---
 
+## Publicar no Streamlit Community Cloud
+
+O material está publicado em
+**[aula-ia-medicina-radiologia.streamlit.app](https://aula-ia-medicina-radiologia.streamlit.app)**.
+
+Para publicar a sua própria cópia, basta apontar o Community Cloud para o fork e
+indicar `aula_ia_radiologia.py` como arquivo de entrada. As dependências vêm do
+`requirements.txt` deste repositório. Três coisas que não são óbvias:
+
+**O `torch` está fixado com o sufixo `+cpu`, e isso é obrigatório.** No Linux, o
+pacote `torch` do PyPI é a build com CUDA e arrasta alguns gigabytes de dependências
+`nvidia-*` para uma aula que roda inteiramente em CPU — o que estoura o limite do
+plano gratuito. A build de CPU vive num índice separado, mas só apontar o índice não
+resolve: o `uv`, que o Community Cloud usa, para de procurar no primeiro lugar onde
+acha o pacote, e o PyPI vem primeiro. Fixar a versão exata com `+cpu`, que não existe
+no PyPI, obriga o resolvedor a buscar no índice certo. O `requirements.txt` explica
+isso em comentário, para ninguém "limpar" o arquivo mais tarde.
+
+**A versão do Python é escolhida no deploy e não pode ser alterada depois.** Selecione
+em *Advanced settings* na hora de publicar. Para trocar, é preciso apagar o app e
+reimplantar — o subdomínio fica livre na hora e pode ser reaproveitado. As versões
+fixadas aqui têm wheel para Python 3.10 a 3.14.
+
+**Os módulos 7 e 8 podem não funcionar no plano gratuito.** Eles carregam modelos de
+440 MB e 260 MB, e a hospedagem gratuita tem limite de memória. Os módulos 1 a 6, que
+usam modelos de ~30 MB, rodam sem problema. O programa avisa o tamanho antes de você
+clicar, e explica o que houve se falhar.
+
+Para conferir, antes de publicar, que a resolução não vai trazer os pacotes de CUDA:
+
+```bash
+python -m pip install --dry-run --ignore-installed --only-binary=:all: --python-version 3.13 --platform manylinux_2_28_x86_64 --platform manylinux_2_17_x86_64 --target /tmp/checagem -r requirements.txt
+```
+
+Tem que listar `torch-2.12.1+cpu` e **nenhum** pacote `nvidia-*`.
+
+---
+
 ## Personalizar
 
 Tudo o que costuma precisar de ajuste está reunido no **BLOCO 1** do arquivo, logo

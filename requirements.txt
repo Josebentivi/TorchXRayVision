@@ -1,0 +1,56 @@
+# Dependências da aula de IA em radiologia.
+#
+# O Streamlit Community Cloud lê este arquivo para montar o ambiente. Ele tenta
+# processá-lo com uv e, se precisar, recorre ao pip.
+#
+# ---------------------------------------------------------------------------
+# POR QUE O torch ESTÁ FIXADO COM O SUFIXO "+cpu" — não remova sem ler
+# ---------------------------------------------------------------------------
+# No Linux, o pacote "torch" publicado no PyPI é a build COM CUDA: ele arrasta
+# mais de uma dezena de dependências nvidia-*, somando alguns gigabytes. Esta
+# aula roda inteiramente em CPU e nunca usa placa de vídeo, então esse volume é
+# desperdício puro — e estoura o limite de espaço do plano gratuito.
+#
+# A build de CPU existe, mas mora num índice separado, declarado na linha
+# abaixo. Só que apontar o índice não basta: o uv usa por padrão a estratégia
+# "primeiro índice", ou seja, para de procurar no primeiro lugar onde acha o
+# pacote. Como o PyPI é o índice padrão e tem "torch", ele nunca chegaria a
+# olhar o índice de CPU.
+#
+# A saída é fixar a versão exata com o sufixo "+cpu". Esse sufixo não existe no
+# PyPI, então o resolvedor é obrigado a buscar no índice certo. Funciona igual
+# no uv e no pip.
+#
+# Consequência prática: para trocar a versão do torch, é preciso trocar TAMBÉM a
+# do torchvision pela versão par (0.27 ↔ 2.12, 0.28 ↔ 2.13, 0.29 ↔ 2.14) e
+# conferir se existe wheel para a versão de Python do seu ambiente.
+# ---------------------------------------------------------------------------
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.12.1+cpu
+torchvision==0.27.1+cpu
+
+# ---------------------------------------------------------------------------
+# O resto vai com piso e teto de versão maior.
+#
+# O piso garante as funções que a aula usa. O teto evita que o material pare de
+# funcionar sozinho quando sair um numpy 3 ou um streamlit 2 — uma aula não pode
+# quebrar entre um semestre e outro por causa de uma atualização automática.
+# ---------------------------------------------------------------------------
+
+torchxrayvision>=1.5,<2
+pydicom>=3,<4
+streamlit>=1.40,<2
+scikit-image>=0.24,<1
+matplotlib>=3.8,<4
+pandas>=2,<3
+numpy>=1.26,<3
+
+# Não estão listados de propósito:
+#   requests, tqdm  -> entram como dependências do torchxrayvision
+#   opencv          -> o código usa o redimensionador do scikit-image; o cv2 no
+#                      TorchXRayVision é opcional e importado só sob demanda
+#
+# Também não é necessário um packages.txt: nenhuma dependência precisa de
+# biblioteca de sistema instalada via apt.
